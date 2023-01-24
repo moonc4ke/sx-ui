@@ -15,11 +15,13 @@ const modalState: Ref<{
   sendToken?: any;
   sendNft?: any;
   contractCall?: any;
+  connectWallet?: any;
 }> = ref({});
 const modalOpen = ref({
   sendToken: false,
   sendNft: false,
-  contractCall: false
+  contractCall: false,
+  connectWallet: false
 });
 
 const txs = computed({
@@ -48,7 +50,7 @@ function removeTx(index: number) {
   ]);
 }
 
-function openModal(type: 'sendToken' | 'sendNft' | 'contractCall') {
+function openModal(type: 'sendToken' | 'sendNft' | 'contractCall' | 'connectWallet') {
   editedTx.value = null;
   modalState.value[type] = null;
   modalOpen.value[type] = true;
@@ -66,7 +68,7 @@ function editTx(index: number) {
   <div>
     <div class="overflow-hidden w-auto">
       <div
-        class="mb-3 flex flex-no-wrap overflow-x-scroll no-scrollbar scrolling-touch items-start space-x-3"
+        class="mb-3 flex flex-wrap overflow-x-scroll no-scrollbar scrolling-touch items-start space-x-3"
       >
         <a
           class="px-4 py-3 border-b border rounded-lg block min-w-[165px]"
@@ -88,6 +90,13 @@ function editTx(index: number) {
         >
           <IH-chip />
           Contract call
+        </a>
+        <a
+          class="px-4 py-3 border-b border rounded-lg block min-w-[165px]"
+          @click="openModal('connectWallet')"
+        >
+          <IH-login />
+          WalletConnect
         </a>
       </div>
     </div>
@@ -137,6 +146,12 @@ function editTx(index: number) {
         :open="modalOpen.contractCall"
         :initial-state="modalState.contractCall"
         @close="modalOpen.contractCall = false"
+        @add="addTx"
+      />
+      <ModalConnectWallet
+        :open="modalOpen.connectWallet"
+        :initial-state="modalState.connectWallet"
+        @close="modalOpen.connectWallet = false"
         @add="addTx"
       />
     </teleport>

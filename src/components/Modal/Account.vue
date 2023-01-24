@@ -1,5 +1,5 @@
 <script setup>
-import { toRefs, watch } from 'vue';
+import { toRefs, watch, onUpdated } from 'vue';
 import { getInjected } from '@snapshot-labs/lock/src/utils';
 import { shorten, explorerUrl, getUrl } from '@/helpers/utils';
 import connectors from '@/helpers/connectors.json';
