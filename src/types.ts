@@ -85,6 +85,30 @@ export type Metadata = {
   execution: Transaction[];
 };
 
+export type WalletConnectSession = {
+  accounts: string[];
+  bridge: string;
+  chainId: number;
+  clientId: string;
+  clientMeta: {
+    description: string;
+    url: string;
+    icons: [];
+    name: string;
+  };
+  connected: boolean;
+  handshakeId: number;
+  handshakeTopic: string;
+  key: string;
+  peerId: string;
+  peerMeta: {
+    description: string;
+    url: string;
+    icons: [];
+    name: string;
+  };
+};
+
 export type Drafts = Record<string, Draft>;
 
 export type BaseTransaction = {
@@ -132,4 +156,39 @@ export type ContractCallTransaction = BaseTransaction & {
   };
 };
 
-export type Transaction = SendTokenTransaction | SendNftTransaction | ContractCallTransaction;
+export type TransactionRequest = BaseTransaction & {
+  _type: 'transactionRequest';
+  method: string;
+  operation: number;
+  params: any[];
+  to: string;
+  value: string;
+  _data: {
+    call: {
+      method: string;
+      params: any[];
+    };
+    tx: {
+      data: string;
+      from: string;
+      gasLimit: string;
+      gasPrice: string;
+      nonce: number;
+      to: string;
+      value: string;
+    };
+  };
+  _form: {
+    abi: any[];
+    recipient: string;
+    method: string;
+    args: any;
+    amount?: string;
+  };
+};
+
+export type Transaction =
+  | SendTokenTransaction
+  | SendNftTransaction
+  | ContractCallTransaction
+  | TransactionRequest;

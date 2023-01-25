@@ -21,6 +21,10 @@ function getTitle(tx: Transaction) {
   if (tx._type === 'contractCall') {
     return `Contract call to <b>${shorten(tx.to)}</b>`;
   }
+
+  if (tx._type === 'transactionRequest') {
+    return `Transaction request to <b>${shorten(tx.to)}</b>`;
+  }
 }
 </script>
 

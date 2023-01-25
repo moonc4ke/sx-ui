@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, Ref } from 'vue';
+import { ref, computed, Ref, watch } from 'vue';
 import draggable from 'vuedraggable';
 import space from '@/helpers/space.json';
 import { Transaction as TransactionType } from '@/types';
 import { useWalletConnect } from '@/composables/useWalletConnect';
-import { shortenAddress } from '@/helpers/utils';
 
 const props = defineProps<{ modelValue: TransactionType[] }>();
 
@@ -12,7 +11,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: TransactionType[]): void;
 }>();
 
-const { connect, logout, connectionDetails, requests, loading } = useWalletConnect();
+const { connect, logout, connectionDetails, request, loading } = useWalletConnect();
 
 const editedTx: Ref<number | null> = ref(null);
 const modalState: Ref<{
@@ -53,6 +52,13 @@ function removeTx(index: number) {
     ...props.modelValue.slice(index + 1)
   ]);
 }
+
+watch(request, newReq => {
+  const newValue = [...props.modelValue];
+
+  newValue.push(newReq.value);
+  emit('update:modelValue', newValue);
+});
 
 function openModal(type: 'sendToken' | 'sendNft' | 'contractCall' | 'connectWallet') {
   editedTx.value = null;
@@ -130,24 +136,6 @@ function editTx(index: number) {
         </template>
       </draggable>
     </div>
-    <template v-if="requests.length > 0">
-      <div v-for="(request, i) in requests" :key="i">
-        <div
-          v-for="(call, x) in request"
-          :key="x"
-          class="px-4 py-3 space-x-2 flex items-center justify-between x-block !border-x rounded-lg"
-        >
-          <div class="flex items-center max-w-[70%]">
-            <slot name="left" />
-            <IH-chip />
-            <div class="ml-2 truncate text-skin-link">
-              Transaction request to <b>{{ `${shortenAddress((call as any).to)}` }}</b>
-            </div>
-          </div>
-          <slot name="right" />
-        </div>
-      </div>
-    </template>
     <teleport to="#modal">
       <ModalSendToken
         :open="modalOpen.sendToken"
