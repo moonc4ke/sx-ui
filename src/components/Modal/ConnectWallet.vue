@@ -9,7 +9,6 @@ const DEFAULT_FORM_STATE = {
 
 const props = defineProps({
   open: Boolean,
-  initialState: Object,
   connectionDetails: {
     type: Object,
     required: true

@@ -160,7 +160,6 @@ function editTx(index: number) {
       />
       <ModalConnectWallet
         :open="modalOpen.connectWallet"
-        :initial-state="modalState.connectWallet"
         :connection-details="connectionDetails"
         :loading="loading"
         @connect="connect"
