@@ -3,12 +3,16 @@ import { ref, computed, Ref } from 'vue';
 import draggable from 'vuedraggable';
 import space from '@/helpers/space.json';
 import { Transaction as TransactionType } from '@/types';
+import { useWalletConnect } from '@/composables/useWalletConnect';
+import { shortenAddress } from '@/helpers/utils';
 
 const props = defineProps<{ modelValue: TransactionType[] }>();
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: TransactionType[]): void;
 }>();
+
+const { connect, logout, connectionDetails, requests, loading } = useWalletConnect();
 
 const editedTx: Ref<number | null> = ref(null);
 const modalState: Ref<{
@@ -68,7 +72,7 @@ function editTx(index: number) {
   <div>
     <div class="overflow-hidden w-auto">
       <div
-        class="mb-3 flex flex-wrap overflow-x-scroll no-scrollbar scrolling-touch items-start space-x-3"
+        class="mb-3 flex flex-no-wrap overflow-x-scroll no-scrollbar scrolling-touch items-start space-x-3"
       >
         <a
           class="px-4 py-3 border-b border rounded-lg block min-w-[165px]"
@@ -126,6 +130,24 @@ function editTx(index: number) {
         </template>
       </draggable>
     </div>
+    <template v-if="requests.length > 0">
+      <div v-for="(request, i) in requests" :key="i">
+        <div
+          v-for="(call, x) in request"
+          :key="x"
+          class="px-4 py-3 space-x-2 flex items-center justify-between x-block !border-x rounded-lg"
+        >
+          <div class="flex items-center max-w-[70%]">
+            <slot name="left" />
+            <IH-chip />
+            <div class="ml-2 truncate text-skin-link">
+              Transaction request to <b>{{ `${shortenAddress((call as any).to)}` }}</b>
+            </div>
+          </div>
+          <slot name="right" />
+        </div>
+      </div>
+    </template>
     <teleport to="#modal">
       <ModalSendToken
         :open="modalOpen.sendToken"
@@ -151,8 +173,11 @@ function editTx(index: number) {
       <ModalConnectWallet
         :open="modalOpen.connectWallet"
         :initial-state="modalState.connectWallet"
+        :connection-details="connectionDetails"
+        :loading="loading"
+        @connect="connect"
         @close="modalOpen.connectWallet = false"
-        @add="addTx"
+        @logout="logout"
       />
     </teleport>
   </div>

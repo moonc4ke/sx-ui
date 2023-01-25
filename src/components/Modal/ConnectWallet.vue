@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue';
-import { createContractCallTransaction } from '@/helpers/transactions';
+import { reactive, ref, watch } from 'vue';
 import hardcodedSpace from '@/helpers/space.json';
-import { useWalletConnect } from '@/composables/useWalletConnect';
-import { clone, shorten, explorerUrl, getUrl } from '@/helpers/utils';
+import { clone, shorten, explorerUrl } from '@/helpers/utils';
 
 const DEFAULT_FORM_STATE = {
   link: ''
@@ -11,24 +9,37 @@ const DEFAULT_FORM_STATE = {
 
 const props = defineProps({
   open: Boolean,
-  initialState: Object
+  initialState: Object,
+  connectionDetails: {
+    type: Object,
+    required: true
+  },
+  loading: Boolean
 });
 
-const { connect, logout, loading, logged, address, requests, parseCall, connectionDetails } =
-  useWalletConnect();
-
-const emit = defineEmits(['add', 'close']);
+const emit = defineEmits(['add', 'close', 'connect', 'logout']);
 
 const form = reactive(clone(DEFAULT_FORM_STATE));
+const connectionLoading = ref(false);
+
+watch(
+  () => props.loading,
+  () => {
+    if (!props.loading) {
+      connectionLoading.value = false;
+      emit('close');
+    }
+  }
+);
 
 function handleSubmit() {
-  connect(hardcodedSpace.wallet, form.link);
-  emit('close');
+  connectionLoading.value = true;
+  emit('connect', hardcodedSpace.wallet, form.link);
 }
 
 function handleLogout() {
   form.link = '';
-  logout();
+  emit('logout');
 }
 </script>
 
@@ -64,12 +75,17 @@ function handleLogout() {
     </div>
 
     <template #footer>
-      <div v-if="!connectionDetails.value || !connectionDetails.value.connected">
-        <UiButton class="w-full" @click="handleSubmit">Connect</UiButton>
+      <div v-if="connectionLoading" class="px-4 py-3 block flex justify-center">
+        <UiLoading />
       </div>
-      <div v-else-if="connectionDetails.value.connected">
-        <UiButton class="button-outline w-full !text-red" @click="handleLogout">Log out</UiButton>
-      </div>
+      <template v-else>
+        <div v-if="!connectionDetails.value || !connectionDetails.value.connected">
+          <UiButton class="w-full" @click="handleSubmit">Connect</UiButton>
+        </div>
+        <div v-else-if="connectionDetails.value.connected">
+          <UiButton class="button-outline w-full !text-red" @click="handleLogout">Log out</UiButton>
+        </div>
+      </template>
     </template>
   </UiModal>
 </template>

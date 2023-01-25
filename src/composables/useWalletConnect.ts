@@ -48,6 +48,7 @@ async function parseCall(call) {
     return [
       {
         to: params.to,
+        _type: 'transactionRequest',
         value: formatUnits(params.value || 0),
         method: tx.signature,
         params: tx.args,
