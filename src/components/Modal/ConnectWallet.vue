@@ -97,10 +97,7 @@ function handleLogout() {
       </div>
       <template v-else>
         <div v-if="!connectionDetails.value || !connectionDetails.value.connected">
-          <UiButton
-            class="w-full"
-            :disabled="!!errors.link || form.link.length <= 0"
-            @click="handleSubmit"
+          <UiButton class="w-full" :disabled="!!errors.link" @click="handleSubmit"
             >Connect</UiButton
           >
         </div>
