@@ -18,42 +18,35 @@ async function getContractABI(address) {
   return JSON.parse(result);
 }
 
-function parseTransaction(call, abi) {
-  const iface = new Interface(abi);
-  return JSON.parse(JSON.stringify(iface.parseTransaction(call)));
-}
-
-async function parseCall(call): Promise<TransactionRequest | boolean> {
-  console.log('Call', call);
+async function parseCall(call) {
   if (call.method === 'eth_sendTransaction') {
-    console.log('Send transaction');
     const params = call.params[0];
-    const abi = await getContractABI(params.to);
-    console.log('Got ABI contract');
-    const tx = parseTransaction(params, abi);
-    console.log('Tx', tx);
-    return {
-      to: params.to,
-      _type: 'transactionRequest',
-      value: formatUnits(params.value || 0),
-      method: tx.signature,
-      params: tx.args,
-      operation: 0,
-      _data: {
-        call,
-        tx
-      },
-      data: '',
-      _form: {
-        abi,
-        recipient: params.to,
-        method: tx.name,
-        args: tx.args,
-        amount: formatUnits(params.value || 0)
-      }
-    };
+    return getContractABI(params.to).then(abi => {
+      const iface = new Interface(abi);
+      const tx = iface.parseTransaction(params);
+      return {
+        to: params.to,
+        _type: 'transactionRequest',
+        value: formatUnits(params.value || 0),
+        method: tx.signature,
+        params: tx.args,
+        operation: 0,
+        _data: {
+          call,
+          tx
+        },
+        data: '',
+        _form: {
+          abi,
+          recipient: params.to,
+          method: tx.name,
+          args: tx.args,
+          amount: formatUnits(params.value || 0)
+        }
+      };
+    });
   }
-  return false;
+  return Promise.resolve(false);
 }
 
 const initialConnectionDetails: WalletConnectSession = {
@@ -119,19 +112,20 @@ const request = reactive({
 
 let connector;
 
-function listenToCallRequests(connector) {
+async function listenToCallRequests(connector) {
   connector.on('call_request', async (error, payload) => {
-    console.log('Call request', error, payload);
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     try {
-      request.value = (await parseCall(payload)) as TransactionRequest;
-      console.log('Request', request.value);
+      const parsedCall = await parseCall(payload);
+      if (parsedCall) {
+        request.value = parsedCall as unknown as TransactionRequest;
+      }
     } catch (e) {
       console.log(e);
     }
   });
-
-  return false;
 }
 
 export function useWalletConnect() {
