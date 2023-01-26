@@ -41,6 +41,14 @@ export function validateForm(schema, form): Record<string, string> {
     }
   });
 
+  ajv.addFormat('walletConnectLink', {
+    validate: value => {
+      if (value.length < 158) return false;
+
+      return true;
+    }
+  });
+
   ajv.addFormat('int256', {
     validate: value => {
       if (!value.match(/^-?([0-9]|[1-9][0-9]+)$/)) return false;

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import hardcodedSpace from '@/helpers/space.json';
 import { clone, shorten, explorerUrl } from '@/helpers/utils';
+import { validateForm } from '@/helpers/validation';
 
 const DEFAULT_FORM_STATE = {
   link: ''
@@ -36,6 +37,22 @@ function handleSubmit() {
   emit('connect', hardcodedSpace.wallet, form.link);
 }
 
+const errors = computed(() =>
+  validateForm(
+    {
+      type: 'object',
+      properties: {
+        link: {
+          type: 'string',
+          format: 'walletConnectLink'
+        }
+      },
+      additionalProperties: true
+    },
+    { link: form.link }
+  )
+);
+
 function handleLogout() {
   form.link = '';
   emit('logout');
@@ -52,6 +69,7 @@ function handleLogout() {
       <div v-if="!connectionDetails.value || !connectionDetails.value.connected" class="relative">
         <SIString
           v-model="form.link"
+          :error="errors.link"
           :definition="{
             title: 'Connection link',
             examples: ['e.g. wc:e195250f-26ab...']
@@ -79,7 +97,12 @@ function handleLogout() {
       </div>
       <template v-else>
         <div v-if="!connectionDetails.value || !connectionDetails.value.connected">
-          <UiButton class="w-full" @click="handleSubmit">Connect</UiButton>
+          <UiButton
+            class="w-full"
+            :disabled="!!errors.link || form.link.length <= 0"
+            @click="handleSubmit"
+            >Connect</UiButton
+          >
         </div>
         <div v-else-if="connectionDetails.value.connected">
           <UiButton class="button-outline w-full !text-red" @click="handleLogout">Log out</UiButton>
