@@ -169,7 +169,6 @@ export function useWalletConnect() {
       uri,
       storageId: 'linkwalletconnect'
     });
-    connector.killSession();
     connector.on('session_request', async (error, payload) => {
       console.log('session_request', error, payload);
       if (error) throw error;
